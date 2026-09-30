@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>ShoeStore</RootNamespace>
+    <AssemblyName>ShoeStore</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.10" />
+  </ItemGroup>
+
+  <!-- Скрипты БД лежат в папке db/ и встраиваются в приложение: один источник правды -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\db\schema.sql" LogicalName="schema.sql" />
+    <EmbeddedResource Include="..\..\db\seed.sql" LogicalName="seed.sql" />
+  </ItemGroup>
+
+  <!-- Картинки (logo.png, picture.png, фото товаров) копируются рядом с exe -->
+  <ItemGroup>
+    <Content Include="Images\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

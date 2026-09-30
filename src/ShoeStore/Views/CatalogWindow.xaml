@@ -1,0 +1,139 @@
+<Window x:Class="ShoeStore.Views.CatalogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:services="clr-namespace:ShoeStore.Services"
+        Title="Каталог товаров — Магазин обуви «Шаг»"
+        Width="1100" Height="720" MinWidth="900" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource PageBackgroundBrush}"
+        FontFamily="{StaticResource AppFontFamily}">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Шапка: логотип, заголовок, ФИО пользователя (справа вверху), выход -->
+        <Border Grid.Row="0" Background="{StaticResource HeaderBrush}" Padding="12,8">
+            <DockPanel LastChildFill="True">
+                <Image x:Name="LogoImage" Height="48" DockPanel.Dock="Left" Margin="0,0,12,0"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="UserNameTextBlock" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Button Content="Выйти" Click="LogoutButton_Click"/>
+                </StackPanel>
+                <TextBlock Text="Каталог обуви" FontSize="22" FontWeight="Bold" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- Поиск, фильтр, сортировка: только менеджер и администратор -->
+        <WrapPanel x:Name="ToolbarPanel" Grid.Row="1" Margin="12,8">
+            <TextBlock Text="Поиск:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBox x:Name="SearchTextBox" Width="260" Margin="0,0,16,0"
+                     ToolTip="Ищет по наименованию, категории, описанию, производителю, поставщику и единице измерения"
+                     TextChanged="SearchTextBox_TextChanged"/>
+
+            <TextBlock Text="Поставщик:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="SupplierComboBox" Width="200" Margin="0,0,16,0" DisplayMemberPath="Name"
+                      SelectionChanged="FilterComboBox_SelectionChanged"/>
+
+            <TextBlock Text="Сортировка:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="SortComboBox" Width="200" Margin="0,0,16,0" SelectedIndex="0"
+                      SelectionChanged="FilterComboBox_SelectionChanged">
+                <ComboBoxItem Content="Без сортировки"/>
+                <ComboBoxItem Content="Остаток: по возрастанию"/>
+                <ComboBoxItem Content="Остаток: по убыванию"/>
+            </ComboBox>
+
+            <Button x:Name="AddProductButton" Content="Добавить товар" Click="AddProductButton_Click"/>
+            <Button x:Name="OrdersButton" Content="Заказы" Click="OrdersButton_Click"/>
+        </WrapPanel>
+
+        <!-- Список товаров -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="12,0">
+            <ItemsControl x:Name="ProductsItemsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Gray" BorderThickness="1" Padding="8" Margin="0,0,0,6"
+                                MouseLeftButtonUp="ProductItem_MouseLeftButtonUp">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Style.Triggers>
+                                        <!-- Скидка больше 15% — зелёный фон -->
+                                        <DataTrigger Binding="{Binding IsBigDiscount}" Value="True">
+                                            <Setter Property="Background" Value="#2E8B57"/>
+                                        </DataTrigger>
+                                        <!-- Нет на складе — голубой фон (указан ниже, поэтому главнее скидки) -->
+                                        <DataTrigger Binding="{Binding IsOutOfStock}" Value="True">
+                                            <Setter Property="Background" Value="LightBlue"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="90"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Image Grid.Column="0" Source="{Binding Photo}" Width="150" Height="100"
+                                       Stretch="Uniform" VerticalAlignment="Top"/>
+
+                                <StackPanel Grid.Column="1" Margin="8,0">
+                                    <TextBlock Text="{Binding ProductName}" FontSize="16" FontWeight="Bold"/>
+                                    <TextBlock TextWrapping="Wrap">
+                                        <Run Text="Категория: " FontWeight="SemiBold"/><Run Text="{Binding CategoryName, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock TextWrapping="Wrap">
+                                        <Run Text="Описание: " FontWeight="SemiBold"/><Run Text="{Binding Description, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock>
+                                        <Run Text="Производитель: " FontWeight="SemiBold"/><Run Text="{Binding ManufacturerName, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock>
+                                        <Run Text="Поставщик: " FontWeight="SemiBold"/><Run Text="{Binding SupplierName, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock>
+                                        <Run Text="Единица измерения: " FontWeight="SemiBold"/><Run Text="{Binding UnitName, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock>
+                                        <Run Text="Количество на складе: " FontWeight="SemiBold"/><Run Text="{Binding StockQuantity, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Старая цена красная и перечёркнутая, итоговая — чёрная -->
+                                <StackPanel Grid.Column="2" VerticalAlignment="Top">
+                                    <TextBlock Text="Цена" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Price, StringFormat={}{0:N2} ₽}"
+                                               TextDecorations="Strikethrough" Foreground="Red"
+                                               Visibility="{Binding HasDiscount, Converter={StaticResource BoolToVisibility}}"/>
+                                    <TextBlock Text="{Binding FinalPrice, StringFormat={}{0:N2} ₽}"
+                                               Foreground="Black" FontSize="16"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="3" VerticalAlignment="Top">
+                                    <TextBlock Text="Скидка" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Discount, StringFormat={}{0}%}" FontSize="16"/>
+                                    <Button Content="Удалить" Margin="0,8,0,0" Background="#C0392B"
+                                            Visibility="{x:Static services:Session.AdminOnlyVisibility}"
+                                            Click="DeleteButton_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <TextBlock x:Name="CountTextBlock" Grid.Row="3" Margin="12,6" Foreground="Gray"/>
+    </Grid>
+</Window>
