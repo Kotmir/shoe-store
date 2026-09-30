@@ -82,11 +82,6 @@ echo.
 REM ---------- Добавление изменений ----------
 echo [1/3] Добавление изменений...
 git add -A
-git diff --cached --quiet
-if not errorlevel 1 (
-    echo Нет изменений для коммита.
-    goto :end
-)
 echo.
 git status -s
 
@@ -134,8 +129,7 @@ echo.
 echo [2/3] Создание коммита: !comment!
 git commit -m "!comment!"
 if errorlevel 1 (
-    echo [Ошибка] Коммит не удался.
-    goto :end
+    echo [Внимание] Новый коммит не создан ^(нет изменений или ошибка^). Отправляю уже имеющиеся коммиты.
 )
 
 REM ---------- Push ----------
