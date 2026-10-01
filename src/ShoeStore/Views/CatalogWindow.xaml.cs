@@ -19,6 +19,8 @@ public partial class CatalogWindow : Window
         InitializeComponent();
 
         UserNameTextBlock.Text = Session.DisplayName;
+        UserRoleTextBlock.Text = Session.RoleName;
+        UserInitialsTextBlock.Text = GetInitials(Session.DisplayName);
         LogoImage.Source = ImageService.LoadLogo();
 
         ConfigureForRole();
@@ -103,9 +105,19 @@ public partial class CatalogWindow : Window
         List<Product> result = query.ToList();
         ProductsItemsControl.ItemsSource = result;
 
-        CountTextBlock.Text = result.Count == 0
-            ? "Ничего не найдено. Измените строку поиска или выберите другого поставщика."
-            : $"Показано товаров: {result.Count} из {allProducts.Count}";
+        // Пустой результат показывается отдельной заглушкой в разметке (по ProductsItemsControl.HasItems)
+        CountTextBlock.Text = $"Показано товаров: {result.Count} из {allProducts.Count}";
+    }
+
+    // «Иванов Иван Иванович» → «ИИ», «Гость» → «Г»
+    private static string GetInitials(string fullName)
+    {
+        IEnumerable<char> letters = fullName
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(part => char.ToUpper(part[0]));
+
+        return string.Concat(letters);
     }
 
     // Каждое слово запроса должно встретиться хотя бы в одном текстовом поле товара

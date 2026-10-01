@@ -3,137 +3,321 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:services="clr-namespace:ShoeStore.Services"
         Title="Каталог товаров — Магазин обуви «Шаг»"
-        Width="1100" Height="720" MinWidth="900" MinHeight="500"
+        Width="1180" Height="780" MinWidth="960" MinHeight="560"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource PageBackgroundBrush}"
-        FontFamily="{StaticResource AppFontFamily}">
+        Style="{StaticResource AppWindowStyle}">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <!-- Подпись поля в карточке: цвет наследуется от карточки, приглушение — прозрачностью,
+             чтобы текст оставался читаемым и на цветной подсветке -->
+        <Style x:Key="CardLabel" TargetType="TextBlock">
+            <Setter Property="Opacity" Value="0.68"/>
+            <Setter Property="Margin" Value="0,0,16,4"/>
+        </Style>
+        <Style x:Key="CardValue" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
     </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Шапка: логотип, заголовок, ФИО пользователя (справа вверху), выход -->
-        <Border Grid.Row="0" Background="{StaticResource HeaderBrush}" Padding="12,8">
-            <DockPanel LastChildFill="True">
-                <Image x:Name="LogoImage" Height="48" DockPanel.Dock="Left" Margin="0,0,12,0"/>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock x:Name="UserNameTextBlock" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Button Content="Выйти" Click="LogoutButton_Click"/>
+        <!-- ===== Шапка: логотип, название, пользователь (справа вверху), выход ===== -->
+        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource DividerBrush}"
+                BorderThickness="0,0,0,1" Padding="24,12">
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image x:Name="LogoImage" Height="40" MaxWidth="140" Stretch="Uniform"/>
+                    <Border Width="40" Height="40" CornerRadius="10" Background="{StaticResource AccentBrush}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Source, ElementName=LogoImage}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="Ш" FontSize="20" FontWeight="Bold" Foreground="White"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center" Margin="12,0,0,0">
+                        <TextBlock Text="Шаг" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Text="магазин обуви" FontSize="12" Style="{StaticResource MutedText}"/>
+                    </StackPanel>
                 </StackPanel>
-                <TextBlock Text="Каталог обуви" FontSize="22" FontWeight="Bold" VerticalAlignment="Center"/>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Аватар с инициалами -->
+                    <Border Width="38" Height="38" CornerRadius="19" Background="{StaticResource AccentSoftBrush}">
+                        <TextBlock x:Name="UserInitialsTextBlock" FontWeight="Bold" FontSize="13"
+                                   Foreground="{StaticResource AccentDarkBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Margin="10,0,16,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="UserNameTextBlock" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="UserRoleTextBlock" FontSize="12" Style="{StaticResource MutedText}"/>
+                    </StackPanel>
+                    <Border Width="1" Height="28" Background="{StaticResource DividerBrush}" Margin="0,0,8,0"/>
+                    <Button Style="{StaticResource GhostButton}" Click="LogoutButton_Click" ToolTip="Вернуться к окну входа">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72B;" Style="{StaticResource Icon}" Margin="0,0,8,0"/>
+                            <TextBlock Text="Выйти"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </DockPanel>
         </Border>
 
-        <!-- Поиск, фильтр, сортировка: только менеджер и администратор -->
-        <WrapPanel x:Name="ToolbarPanel" Grid.Row="1" Margin="12,8">
-            <TextBlock Text="Поиск:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <TextBox x:Name="SearchTextBox" Width="260" Margin="0,0,16,0"
-                     ToolTip="Ищет по наименованию, категории, описанию, производителю, поставщику и единице измерения"
-                     TextChanged="SearchTextBox_TextChanged"/>
+        <!-- ===== Заголовок страницы ===== -->
+        <StackPanel Grid.Row="1" Margin="24,24,24,16">
+            <TextBlock Text="Каталог обуви" Style="{StaticResource PageTitle}"/>
+            <TextBlock x:Name="CountTextBlock" Style="{StaticResource MutedText}" Margin="0,4,0,0"/>
+        </StackPanel>
 
-            <TextBlock Text="Поставщик:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="SupplierComboBox" Width="200" Margin="0,0,16,0" DisplayMemberPath="Name"
-                      SelectionChanged="FilterComboBox_SelectionChanged"/>
+        <!-- ===== Поиск, фильтр, сортировка: только менеджер и администратор ===== -->
+        <Border x:Name="ToolbarPanel" Grid.Row="2" Style="{StaticResource Card}" Padding="16" Margin="24,0,24,16">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button x:Name="OrdersButton" Style="{StaticResource SecondaryButton}" Margin="12,0,0,0"
+                            Click="OrdersButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8FD;" Style="{StaticResource Icon}" Margin="0,0,8,0"/>
+                            <TextBlock Text="Заказы"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="AddProductButton" Margin="8,0,0,0" Click="AddProductButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE710;" Style="{StaticResource Icon}" Margin="0,0,8,0"/>
+                            <TextBlock Text="Добавить товар"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
 
-            <TextBlock Text="Сортировка:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <ComboBox x:Name="SortComboBox" Width="200" Margin="0,0,16,0" SelectedIndex="0"
-                      SelectionChanged="FilterComboBox_SelectionChanged">
-                <ComboBoxItem Content="Без сортировки"/>
-                <ComboBoxItem Content="Остаток: по возрастанию"/>
-                <ComboBoxItem Content="Остаток: по убыванию"/>
-            </ComboBox>
+                <WrapPanel VerticalAlignment="Bottom">
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="Поиск" Style="{StaticResource FieldLabel}"/>
+                        <Grid Width="300">
+                            <TextBox x:Name="SearchTextBox" Tag="Название, описание, поставщик…" Padding="34,0,10,0"
+                                     ToolTip="Ищет по наименованию, категории, описанию, производителю, поставщику и единице измерения"
+                                     TextChanged="SearchTextBox_TextChanged"/>
+                            <TextBlock Text="&#xE721;" Style="{StaticResource Icon}" Foreground="{StaticResource MutedTextBrush}"
+                                       HorizontalAlignment="Left" Margin="12,0,0,0" IsHitTestVisible="False"/>
+                        </Grid>
+                    </StackPanel>
 
-            <Button x:Name="AddProductButton" Content="Добавить товар" Click="AddProductButton_Click"/>
-            <Button x:Name="OrdersButton" Content="Заказы" Click="OrdersButton_Click"/>
-        </WrapPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="Поставщик" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox x:Name="SupplierComboBox" Width="220" DisplayMemberPath="Name"
+                                  SelectionChanged="FilterComboBox_SelectionChanged"/>
+                    </StackPanel>
 
-        <!-- Список товаров -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="12,0">
-            <ItemsControl x:Name="ProductsItemsControl">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border BorderBrush="Gray" BorderThickness="1" Padding="8" Margin="0,0,0,6"
-                                MouseLeftButtonUp="ProductItem_MouseLeftButtonUp">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="White"/>
-                                    <Style.Triggers>
-                                        <!-- Скидка больше 15% — зелёный фон -->
-                                        <DataTrigger Binding="{Binding IsBigDiscount}" Value="True">
-                                            <Setter Property="Background" Value="#2E8B57"/>
-                                        </DataTrigger>
-                                        <!-- Нет на складе — голубой фон (указан ниже, поэтому главнее скидки) -->
-                                        <DataTrigger Binding="{Binding IsOutOfStock}" Value="True">
-                                            <Setter Property="Background" Value="LightBlue"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
+                    <StackPanel>
+                        <TextBlock Text="Сортировка" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox x:Name="SortComboBox" Width="220" SelectedIndex="0"
+                                  SelectionChanged="FilterComboBox_SelectionChanged">
+                            <ComboBoxItem Content="Без сортировки"/>
+                            <ComboBoxItem Content="Остаток: по возрастанию"/>
+                            <ComboBoxItem Content="Остаток: по убыванию"/>
+                        </ComboBox>
+                    </StackPanel>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
 
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="160"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="90"/>
-                                </Grid.ColumnDefinitions>
+        <!-- ===== Список товаров ===== -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Padding="24,0,12,16" Margin="0,0,12,0">
+            <Grid>
+                <ItemsControl x:Name="ProductsItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,12">
+                                <!-- Тень рисуется отдельным слоем, чтобы эффект не размывал текст карточки -->
+                                <Border CornerRadius="{StaticResource CardCornerRadius}" Background="{StaticResource SurfaceBrush}"
+                                        Effect="{StaticResource CardShadow}"/>
 
-                                <Image Grid.Column="0" Source="{Binding Photo}" Width="150" Height="100"
-                                       Stretch="Uniform" VerticalAlignment="Top"/>
+                                <Border BorderThickness="1" CornerRadius="{StaticResource CardCornerRadius}" Padding="16"
+                                        Cursor="{x:Static services:Session.ItemCursor}"
+                                        MouseLeftButtonUp="ProductItem_MouseLeftButtonUp">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="{StaticResource InputBorderHoverBrush}"/>
+                                                </Trigger>
+                                                <!-- Скидка больше 15% — фон #2E8B57 -->
+                                                <DataTrigger Binding="{Binding IsBigDiscount}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource BigDiscountBrush}"/>
+                                                </DataTrigger>
+                                                <!-- Нет на складе — голубой фон (указан ниже, поэтому главнее скидки) -->
+                                                <DataTrigger Binding="{Binding IsOutOfStock}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource OutOfStockBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
 
-                                <StackPanel Grid.Column="1" Margin="8,0">
-                                    <TextBlock Text="{Binding ProductName}" FontSize="16" FontWeight="Bold"/>
-                                    <TextBlock TextWrapping="Wrap">
-                                        <Run Text="Категория: " FontWeight="SemiBold"/><Run Text="{Binding CategoryName, Mode=OneWay}"/>
-                                    </TextBlock>
-                                    <TextBlock TextWrapping="Wrap">
-                                        <Run Text="Описание: " FontWeight="SemiBold"/><Run Text="{Binding Description, Mode=OneWay}"/>
-                                    </TextBlock>
-                                    <TextBlock>
-                                        <Run Text="Производитель: " FontWeight="SemiBold"/><Run Text="{Binding ManufacturerName, Mode=OneWay}"/>
-                                    </TextBlock>
-                                    <TextBlock>
-                                        <Run Text="Поставщик: " FontWeight="SemiBold"/><Run Text="{Binding SupplierName, Mode=OneWay}"/>
-                                    </TextBlock>
-                                    <TextBlock>
-                                        <Run Text="Единица измерения: " FontWeight="SemiBold"/><Run Text="{Binding UnitName, Mode=OneWay}"/>
-                                    </TextBlock>
-                                    <TextBlock>
-                                        <Run Text="Количество на складе: " FontWeight="SemiBold"/><Run Text="{Binding StockQuantity, Mode=OneWay}"/>
-                                    </TextBlock>
-                                </StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="180"/>
+                                        </Grid.ColumnDefinitions>
 
-                                <!-- Старая цена красная и перечёркнутая, итоговая — чёрная -->
-                                <StackPanel Grid.Column="2" VerticalAlignment="Top">
-                                    <TextBlock Text="Цена" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Price, StringFormat={}{0:N2} ₽}"
-                                               TextDecorations="Strikethrough" Foreground="Red"
-                                               Visibility="{Binding HasDiscount, Converter={StaticResource BoolToVisibility}}"/>
-                                    <TextBlock Text="{Binding FinalPrice, StringFormat={}{0:N2} ₽}"
-                                               Foreground="Black" FontSize="16"/>
-                                </StackPanel>
+                                        <!-- Фото 3:2 со скруглёнными углами -->
+                                        <Border Grid.Column="0" Width="180" Height="120" CornerRadius="8"
+                                                Background="{StaticResource SurfaceHoverBrush}" VerticalAlignment="Top">
+                                            <Border CornerRadius="8">
+                                                <Border.Background>
+                                                    <ImageBrush ImageSource="{Binding Photo}" Stretch="Uniform"/>
+                                                </Border.Background>
+                                            </Border>
+                                        </Border>
 
-                                <StackPanel Grid.Column="3" VerticalAlignment="Top">
-                                    <TextBlock Text="Скидка" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Discount, StringFormat={}{0}%}" FontSize="16"/>
-                                    <Button Content="Удалить" Margin="0,8,0,0" Background="#C0392B"
-                                            Visibility="{x:Static services:Session.AdminOnlyVisibility}"
-                                            Click="DeleteButton_Click"/>
-                                </StackPanel>
+                                        <!-- Сведения о товаре -->
+                                        <StackPanel Grid.Column="1" Margin="20,0,16,0">
+                                            <TextBlock Text="{Binding ProductName}" FontSize="18" FontWeight="SemiBold"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Description}" Opacity="0.75" TextWrapping="Wrap"
+                                                       Margin="0,4,0,12"/>
+
+                                            <Grid TextElement.FontSize="13">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Категория" Style="{StaticResource CardLabel}"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CategoryName}" Style="{StaticResource CardValue}"/>
+
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Производитель" Style="{StaticResource CardLabel}"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ManufacturerName}" Style="{StaticResource CardValue}"/>
+
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Поставщик" Style="{StaticResource CardLabel}"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SupplierName}" Style="{StaticResource CardValue}"/>
+
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Единица измерения" Style="{StaticResource CardLabel}"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding UnitName}" Style="{StaticResource CardValue}"/>
+
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Количество на складе" Style="{StaticResource CardLabel}"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding StockQuantity}" FontWeight="SemiBold"
+                                                           Style="{StaticResource CardValue}"/>
+                                            </Grid>
+                                        </StackPanel>
+
+                                        <!-- Цена и скидка: старая цена красная и перечёркнутая, итоговая — чёрная -->
+                                        <DockPanel Grid.Column="2" LastChildFill="False">
+                                            <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Right">
+                                                <Border HorizontalAlignment="Right">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border" BasedOn="{StaticResource Pill}">
+                                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasDiscount}" Value="True">
+                                                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                                    <Setter Property="TextElement.Foreground" Value="{StaticResource AccentDarkBrush}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock Text="{Binding Discount, StringFormat='Скидка {0}%'}"/>
+                                                </Border>
+
+                                                <TextBlock Text="{Binding Price, StringFormat={}{0:N2} ₽}" HorizontalAlignment="Right"
+                                                           Margin="0,12,0,0" FontSize="14"
+                                                           TextDecorations="Strikethrough" Foreground="{StaticResource OldPriceBrush}"
+                                                           Visibility="{Binding HasDiscount, Converter={StaticResource BoolToVisibility}}"/>
+                                                <TextBlock Text="{Binding FinalPrice, StringFormat={}{0:N2} ₽}" HorizontalAlignment="Right"
+                                                           Foreground="{StaticResource FinalPriceBrush}" FontSize="24" FontWeight="Bold"
+                                                           Margin="0,2,0,0"/>
+
+                                                <!-- Наличие -->
+                                                <Border Margin="0,10,0,0">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border" BasedOn="{StaticResource Pill}">
+                                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                            <Setter Property="Background" Value="{StaticResource SuccessSoftBrush}"/>
+                                                            <Setter Property="TextElement.Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsOutOfStock}" Value="True">
+                                                                    <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+                                                                    <Setter Property="TextElement.Foreground" Value="{StaticResource InfoBrush}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock>
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="В наличии"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsOutOfStock}" Value="True">
+                                                                        <Setter Property="Text" Value="Нет в наличии"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <Button DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="0,12,0,0"
+                                                    Style="{StaticResource DangerButton}"
+                                                    Visibility="{x:Static services:Session.AdminOnlyVisibility}"
+                                                    Click="DeleteButton_Click">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE74D;" Style="{StaticResource Icon}" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Удалить"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </DockPanel>
+                                    </Grid>
+                                </Border>
                             </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-        <TextBlock x:Name="CountTextBlock" Grid.Row="3" Margin="12,6" Foreground="Gray"/>
+                <!-- Пустой результат поиска -->
+                <StackPanel HorizontalAlignment="Center" Margin="0,60,0,0">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasItems, ElementName=ProductsItemsControl}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <Border Width="56" Height="56" CornerRadius="28" Background="{StaticResource SurfacePressedBrush}"
+                            HorizontalAlignment="Center">
+                        <TextBlock Text="&#xE721;" Style="{StaticResource Icon}" FontSize="22"
+                                   Foreground="{StaticResource MutedTextBrush}" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Ничего не найдено" FontSize="18" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" Margin="0,16,0,4"/>
+                    <TextBlock Text="Измените строку поиска или выберите другого поставщика."
+                               Style="{StaticResource MutedText}" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </Window>

@@ -4,26 +4,12 @@
              Startup="OnStartup"
              DispatcherUnhandledException="OnUnhandledException">
     <Application.Resources>
-
-        <!-- Единый стиль приложения. Заполните значения по руководству по стилю (Приложение 3) -->
-        <FontFamily x:Key="AppFontFamily">Segoe UI</FontFamily>
-        <SolidColorBrush x:Key="PageBackgroundBrush" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="HeaderBrush" Color="#ECEFF1"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#34495E"/>
-
-        <Style TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,6"/>
-            <Setter Property="Margin" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-
-        <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="4"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-
+        <!-- Единый стиль приложения: палитра в Themes/Colors.xaml, стили элементов — в Themes/Controls.xaml -->
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/ShoeStore;component/Themes/Colors.xaml"/>
+                <ResourceDictionary Source="/ShoeStore;component/Themes/Controls.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

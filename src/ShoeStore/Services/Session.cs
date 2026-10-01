@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Input;
 using ShoeStore.Models;
 
 namespace ShoeStore.Services;
@@ -18,6 +19,17 @@ public static class Session
     public static bool CanUseTools => Role is UserRole.Manager or UserRole.Admin;
 
     public static Visibility AdminOnlyVisibility => IsAdmin ? Visibility.Visible : Visibility.Collapsed;
+
+    // Карточку товара можно открыть для редактирования только администратору — ему показываем «руку»
+    public static Cursor ItemCursor => IsAdmin ? Cursors.Hand : Cursors.Arrow;
+
+    public static string RoleName => Role switch
+    {
+        UserRole.Admin => "Администратор",
+        UserRole.Manager => "Менеджер",
+        UserRole.Client => "Клиент",
+        _ => "Гость"
+    };
 
     public static void SignIn(AppUser user)
     {

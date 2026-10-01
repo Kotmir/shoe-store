@@ -2,88 +2,193 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Товар"
-        Width="640" Height="760" MinHeight="500"
+        Width="780" Height="820" MinWidth="680" MinHeight="520"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource PageBackgroundBrush}"
-        FontFamily="{StaticResource AppFontFamily}">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="20">
+        Style="{StaticResource AppWindowStyle}">
+    <Window.Resources>
+        <!-- Звёздочка обязательного поля -->
+        <Style x:Key="Required" TargetType="Run">
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+        </Style>
+    </Window.Resources>
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Фото" Width="180" DockPanel.Dock="Left"/>
-                <StackPanel>
-                    <Border BorderBrush="Gray" BorderThickness="1" Width="300" Height="200" HorizontalAlignment="Left">
-                        <Image x:Name="PreviewImage" Stretch="Uniform"/>
-                    </Border>
-                    <Button Content="Выбрать фото…" HorizontalAlignment="Left" Margin="0,6,0,0"
-                            Click="ChooseImageButton_Click"/>
-                    <TextBlock Text="Не более 300×200 пикселей" Foreground="Gray"/>
-                </StackPanel>
-            </DockPanel>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <!-- ID: при добавлении скрыт, при редактировании только для чтения -->
-            <DockPanel x:Name="IdPanel" Margin="0,4">
-                <TextBlock Text="ID товара" Width="180" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <TextBox x:Name="IdTextBox" IsReadOnly="True" Background="#F0F0F0"/>
-            </DockPanel>
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="28,24,28,24">
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Наименование *" Width="180" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <TextBox x:Name="NameTextBox" MaxLength="150"/>
-            </DockPanel>
+                <!-- Заголовок берётся из Title окна: «Добавление товара» / «Редактирование товара» -->
+                <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
+                           Style="{StaticResource PageTitle}"/>
+                <TextBlock Style="{StaticResource MutedText}" Margin="0,4,0,20">
+                    <Run Text="Поля, отмеченные"/> <Run Text="*" Style="{StaticResource Required}"/><Run Text=", обязательны для заполнения."/>
+                </TextBlock>
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Категория *" Width="180" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <ComboBox x:Name="CategoryComboBox" DisplayMemberPath="Name" SelectedValuePath="Id"/>
-            </DockPanel>
+                <!-- ===== Фото ===== -->
+                <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Фото товара" Style="{StaticResource SectionTitle}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Описание" Width="180" DockPanel.Dock="Left"/>
-                <TextBox x:Name="DescriptionTextBox" Height="80" AcceptsReturn="True" TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto" MaxLength="500"/>
-            </DockPanel>
+                            <Border Grid.Column="0" Width="300" Height="200" CornerRadius="10"
+                                    Background="{StaticResource SurfaceAltBrush}"
+                                    BorderBrush="{StaticResource InputBorderBrush}" BorderThickness="1">
+                                <Image x:Name="PreviewImage" Stretch="Uniform" Margin="1"/>
+                            </Border>
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Производитель *" Width="180" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <ComboBox x:Name="ManufacturerComboBox" DisplayMemberPath="Name" SelectedValuePath="Id"/>
-            </DockPanel>
+                            <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
+                                <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
+                                        Click="ChooseImageButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE91B;" Style="{StaticResource Icon}" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Выбрать фото…"/>
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock Text="PNG или JPG, не более 300×200 пикселей. Без фото будет показана заглушка."
+                                           Style="{StaticResource FieldHint}" Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Поставщик *" Width="180" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <ComboBox x:Name="SupplierComboBox" DisplayMemberPath="Name" SelectedValuePath="Id"/>
-            </DockPanel>
+                <!-- ===== Основные сведения ===== -->
+                <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Цена, ₽ *" Width="180" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <TextBox x:Name="PriceTextBox" MaxLength="12"
-                         ToolTip="Число не меньше 0, можно с копейками (например, 1999.90)"
-                         PreviewTextInput="PriceTextBox_PreviewTextInput"/>
-            </DockPanel>
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Основные сведения" Style="{StaticResource SectionTitle}"/>
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Единица измерения *" Width="180" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <ComboBox x:Name="UnitComboBox" DisplayMemberPath="Name" SelectedValuePath="Id"/>
-            </DockPanel>
+                        <!-- ID: при добавлении скрыт, при редактировании только для чтения -->
+                        <StackPanel x:Name="IdPanel" Grid.Row="1" Grid.Column="0" Margin="0,0,0,16">
+                            <TextBlock Text="ID товара" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="IdTextBox" IsReadOnly="True" IsTabStop="False"/>
+                        </StackPanel>
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Количество на складе *" Width="180" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <TextBox x:Name="StockTextBox" MaxLength="9"
-                         ToolTip="Целое число не меньше 0"
-                         PreviewTextInput="IntegerTextBox_PreviewTextInput"/>
-            </DockPanel>
+                        <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="0,0,0,16">
+                            <TextBlock Style="{StaticResource FieldLabel}">
+                                <Run Text="Наименование"/> <Run Text="*" Style="{StaticResource Required}"/>
+                            </TextBlock>
+                            <TextBox x:Name="NameTextBox" Tag="Например, Кроссовки Air Run" MaxLength="150"/>
+                        </StackPanel>
 
-            <DockPanel Margin="0,4">
-                <TextBlock Text="Действующая скидка, % *" Width="180" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                <TextBox x:Name="DiscountTextBox" MaxLength="3"
-                         ToolTip="Целое число от 0 до 100"
-                         PreviewTextInput="IntegerTextBox_PreviewTextInput"/>
-            </DockPanel>
+                        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,16">
+                            <TextBlock Style="{StaticResource FieldLabel}">
+                                <Run Text="Категория"/> <Run Text="*" Style="{StaticResource Required}"/>
+                            </TextBlock>
+                            <ComboBox x:Name="CategoryComboBox" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                        </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-                <Button Content="Сохранить" IsDefault="True" Click="SaveButton_Click"/>
-                <Button Content="Назад" Background="#90A4AE" IsCancel="True" Click="BackButton_Click"/>
+                        <StackPanel Grid.Row="3" Grid.Column="2" Margin="0,0,0,16">
+                            <TextBlock Style="{StaticResource FieldLabel}">
+                                <Run Text="Производитель"/> <Run Text="*" Style="{StaticResource Required}"/>
+                            </TextBlock>
+                            <ComboBox x:Name="ManufacturerComboBox" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,0,16">
+                            <TextBlock Style="{StaticResource FieldLabel}">
+                                <Run Text="Поставщик"/> <Run Text="*" Style="{StaticResource Required}"/>
+                            </TextBlock>
+                            <ComboBox x:Name="SupplierComboBox" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="4" Grid.Column="2" Margin="0,0,0,16">
+                            <TextBlock Style="{StaticResource FieldLabel}">
+                                <Run Text="Единица измерения"/> <Run Text="*" Style="{StaticResource Required}"/>
+                            </TextBlock>
+                            <ComboBox x:Name="UnitComboBox" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="5" Grid.ColumnSpan="3">
+                            <TextBlock Text="Описание" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="DescriptionTextBox" Style="{StaticResource MultilineTextBox}" Height="96"
+                                     Tag="Коротко о модели: материал, сезон, назначение"
+                                     VerticalScrollBarVisibility="Auto" MaxLength="500"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ===== Цена и наличие ===== -->
+                <Border Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="5" Text="Цена и наличие" Style="{StaticResource SectionTitle}"/>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0">
+                            <TextBlock Style="{StaticResource FieldLabel}">
+                                <Run Text="Цена, ₽"/> <Run Text="*" Style="{StaticResource Required}"/>
+                            </TextBlock>
+                            <TextBox x:Name="PriceTextBox" Tag="0.00" MaxLength="12"
+                                     ToolTip="Число не меньше 0, можно с копейками (например, 1999.90)"
+                                     PreviewTextInput="PriceTextBox_PreviewTextInput"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="2">
+                            <TextBlock Style="{StaticResource FieldLabel}">
+                                <Run Text="Количество на складе"/> <Run Text="*" Style="{StaticResource Required}"/>
+                            </TextBlock>
+                            <TextBox x:Name="StockTextBox" Tag="0" MaxLength="9"
+                                     ToolTip="Целое число не меньше 0"
+                                     PreviewTextInput="IntegerTextBox_PreviewTextInput"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="4">
+                            <TextBlock Style="{StaticResource FieldLabel}">
+                                <Run Text="Действующая скидка, %"/> <Run Text="*" Style="{StaticResource Required}"/>
+                            </TextBlock>
+                            <TextBox x:Name="DiscountTextBox" Tag="0" MaxLength="3"
+                                     ToolTip="Целое число от 0 до 100"
+                                     PreviewTextInput="IntegerTextBox_PreviewTextInput"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
             </StackPanel>
+        </ScrollViewer>
 
-        </StackPanel>
-    </ScrollViewer>
+        <!-- ===== Нижняя панель действий ===== -->
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource DividerBrush}"
+                BorderThickness="0,1,0,0" Padding="28,14">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Назад" Style="{StaticResource SecondaryButton}" IsCancel="True" Click="BackButton_Click"/>
+                <Button IsDefault="True" Margin="10,0,0,0" Click="SaveButton_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE74E;" Style="{StaticResource Icon}" Margin="0,0,8,0"/>
+                        <TextBlock Text="Сохранить"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
 </Window>
