@@ -55,6 +55,66 @@
 - Администратор: добавление, редактирование (по клику на товар), удаление с подтверждением и запретом для товаров из заказов, загрузка фото до 300×200.
 - Окна сообщений с заголовками и пиктограммами.
 
+## Установка .NET 8 на Linux
+
+> ⚠️ WPF работает только на Windows. Инструкция ниже полезна для CLI-инструментов (`dotnet build`, `dotnet test`) и кросс-платформенных частей проекта.
+
+### Способ 1 — пакетный менеджер (рекомендуется)
+
+**Ubuntu / Debian**
+
+```bash
+# Добавить репозиторий Microsoft
+wget https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+
+# Установить SDK
+sudo apt-get update
+sudo apt-get install -y dotnet-sdk-8.0
+```
+
+**Fedora / RHEL / CentOS**
+
+```bash
+sudo dnf install dotnet-sdk-8.0
+```
+
+**Arch Linux**
+
+```bash
+sudo pacman -S dotnet-sdk
+```
+
+### Способ 2 — скрипт install-dotnet.sh
+
+```bash
+wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+chmod +x dotnet-install.sh
+./dotnet-install.sh --channel 8.0
+```
+
+После установки добавьте в `~/.bashrc` (или `~/.zshrc`):
+
+```bash
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH=$PATH:$HOME/.dotnet:$HOME/.dotnet/tools
+```
+
+Затем перезагрузите оболочку:
+
+```bash
+source ~/.bashrc
+```
+
+### Проверка
+
+```bash
+dotnet --version   # должно вывести 8.x.x
+```
+
+---
+
 ## Дальше
 
 - Импорт данных заказчика (Приложение 2) в БД.
