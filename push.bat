@@ -2,7 +2,7 @@
 setlocal EnableDelayedExpansion
 chcp 65001 > nul
 cd /d "%~dp0"
-1
+
 set "REPO_URL=https://github.com/kotmir/shoe-store.git"
 
 echo ==========================================
